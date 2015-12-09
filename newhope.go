@@ -25,7 +25,7 @@ const (
 
 	// UpstreamVersion is the version of the upstream package this
 	// implementation is compatible with.
-	UpstreamVersion = "20151110"
+	UpstreamVersion = "20151209"
 )
 
 func encodeA(r []byte, pk *poly, seed *[seedBytes]byte) {

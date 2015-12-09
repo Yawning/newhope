@@ -19,7 +19,7 @@ func f(v0, v1 *int32, x int32) int32 {
 	b := x * 2730
 	t := b >> 25
 	b = x - t*paramQ
-	b = (paramQ-1) - b
+	b = (paramQ - 1) - b
 	b >>= 31
 	t -= b
 
@@ -83,10 +83,17 @@ func (c *poly) helpRec(v *poly, seed *[seedBytes]byte, nonce byte) {
 
 		vTmp[0], vTmp[1], vTmp[2], vTmp[3] = int32(v.v[i]), int32(v.v[256+i]), int32(v.v[512+i]), int32(v.v[768+i])
 
-		k = f(&v0[0], &v1[0], 8*vTmp[0]+4*paramQ*rBit)
-		k += f(&v0[1], &v1[1], 8*vTmp[1]+4*paramQ*rBit)
-		k += f(&v0[2], &v1[2], 8*vTmp[2]+4*paramQ*int32(rBit))
-		k += f(&v0[3], &v1[3], 8*vTmp[3]+4*paramQ*int32(rBit))
+		// newhope-20151110 - Old version of the reconciliation.
+		// k = f(&v0[0], &v1[0], 8*vTmp[0]+4*paramQ*rBit)
+		// k += f(&v0[1], &v1[1], 8*vTmp[1]+4*paramQ*rBit)
+		// k += f(&v0[2], &v1[2], 8*vTmp[2]+4*paramQ*int32(rBit))
+		// k += f(&v0[3], &v1[3], 8*vTmp[3]+4*paramQ*int32(rBit))
+
+		// newhope-20151209 - New version of the reconciliation.
+		k = f(&v0[0], &v1[0], 8*vTmp[0]+4*rBit)
+		k += f(&v0[1], &v1[1], 8*vTmp[1]+4*rBit)
+		k += f(&v0[2], &v1[2], 8*vTmp[2]+4*rBit)
+		k += f(&v0[3], &v1[3], 8*vTmp[3]+4*rBit)
 
 		k = (2*paramQ - 1 - k) >> 31
 
