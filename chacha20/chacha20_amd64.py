@@ -178,7 +178,7 @@ with Function("blocksAmd64SSE2", (sigma, one, x, inp, outp, nrBlocks)):
         MOVDQA(xmm_v6, xmm_s2)
         xmm_v7 = XMMRegister()
         MOVDQA(xmm_v7, xmm_s3)
-        PADDD(xmm_v7, [reg_one])
+        PADDQ(xmm_v7, [reg_one])
 
         xmm_v8 = XMMRegister()
         MOVDQU(xmm_v8, [reg_sigma])
@@ -188,7 +188,7 @@ with Function("blocksAmd64SSE2", (sigma, one, x, inp, outp, nrBlocks)):
         MOVDQA(xmm_v10, xmm_s2)
         xmm_v11 = XMMRegister()
         MOVDQA(xmm_v11, xmm_v7)
-        PADDD(xmm_v11, [reg_one])
+        PADDQ(xmm_v11, [reg_one])
 
         reg_rounds = GeneralPurposeRegister64()
         MOV(reg_rounds, 20)
@@ -205,21 +205,21 @@ with Function("blocksAmd64SSE2", (sigma, one, x, inp, outp, nrBlocks)):
         PADDD(xmm_v2, xmm_s2)
         PADDD(xmm_v3, xmm_s3)
         WriteXor(xmm_tmp, reg_inp, reg_outp, 0, xmm_v0, xmm_v1, xmm_v2, xmm_v3)
-        PADDD(xmm_s3, [reg_one])
+        PADDQ(xmm_s3, [reg_one])
 
         PADDD(xmm_v4, [reg_sigma])
         PADDD(xmm_v5, xmm_s1)
         PADDD(xmm_v6, xmm_s2)
         PADDD(xmm_v7, xmm_s3)
         WriteXor(xmm_tmp, reg_inp, reg_outp, 64, xmm_v4, xmm_v5, xmm_v6, xmm_v7)
-        PADDD(xmm_s3, [reg_one])
+        PADDQ(xmm_s3, [reg_one])
 
         PADDD(xmm_v8, [reg_sigma])
         PADDD(xmm_v9, xmm_s1)
         PADDD(xmm_v10, xmm_s2)
         PADDD(xmm_v11, xmm_s3)
         WriteXor(xmm_tmp, reg_inp, reg_outp, 128, xmm_v8, xmm_v9, xmm_v10, xmm_v11)
-        PADDD(xmm_s3, [reg_one])
+        PADDQ(xmm_s3, [reg_one])
 
         ADD(reg_inp, 192)
         ADD(reg_outp, 192)
@@ -249,7 +249,7 @@ with Function("blocksAmd64SSE2", (sigma, one, x, inp, outp, nrBlocks)):
         PADDD(xmm_v2, xmm_s2)
         PADDD(xmm_v3, xmm_s3)
         WriteXor(xmm_tmp, reg_inp, reg_outp, 0, xmm_v0, xmm_v1, xmm_v2, xmm_v3)
-        PADDD(xmm_s3, [reg_one])
+        PADDQ(xmm_s3, [reg_one])
 
         ADD(reg_inp, 64)
         ADD(reg_outp, 64)

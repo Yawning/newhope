@@ -23,12 +23,12 @@ vector_loop_begin:
 		MOVO X1, X9
 		MOVO X2, X10
 		MOVO X3, X11
-		PADDL 0(BX), X11
+		PADDQ 0(BX), X11
 		MOVOU 0(AX), X12
 		MOVO X1, X13
 		MOVO X2, X14
 		MOVO X11, X15
-		PADDL 0(BX), X15
+		PADDQ 0(BX), X15
 		MOVQ $20, CX
 rounds_loop0_begin:
 			PADDL X5, X4
@@ -211,7 +211,7 @@ rounds_loop0_begin:
 		MOVOU 48(DX), X0
 		PXOR X7, X0
 		MOVOU X0, 48(DI)
-		PADDL 0(BX), X3
+		PADDQ 0(BX), X3
 		PADDL 0(AX), X8
 		PADDL X1, X9
 		PADDL X2, X10
@@ -228,7 +228,7 @@ rounds_loop0_begin:
 		MOVOU 112(DX), X0
 		PXOR X11, X0
 		MOVOU X0, 112(DI)
-		PADDL 0(BX), X3
+		PADDQ 0(BX), X3
 		PADDL 0(AX), X12
 		PADDL X1, X13
 		PADDL X2, X14
@@ -245,7 +245,7 @@ rounds_loop0_begin:
 		MOVOU 176(DX), X0
 		PXOR X15, X0
 		MOVOU X0, 176(DI)
-		PADDL 0(BX), X3
+		PADDQ 0(BX), X3
 		ADDQ $192, DX
 		ADDQ $192, DI
 		SUBQ $3, SI
@@ -332,7 +332,7 @@ rounds_loop1_begin:
 		MOVOU 48(DX), X0
 		PXOR X7, X0
 		MOVOU X0, 48(DI)
-		PADDL 0(BX), X3
+		PADDQ 0(BX), X3
 		ADDQ $64, DX
 		ADDQ $64, DI
 		SUBQ $1, SI
