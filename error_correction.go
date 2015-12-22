@@ -74,7 +74,7 @@ func (c *poly) helpRec(v *poly, seed *[seedBytes]byte, nonce byte) {
 	if err != nil {
 		panic(err)
 	}
-	stream.XORKeyStream(rand[:], rand[:])
+	stream.KeyStream(rand[:])
 	stream.Reset()
 	defer memwipe(rand[:])
 

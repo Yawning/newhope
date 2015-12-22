@@ -10,8 +10,8 @@ package newhope
 import (
 	"encoding/binary"
 
-	"golang.org/x/crypto/sha3"
 	"github.com/yawning/newhope/chacha20"
+	"golang.org/x/crypto/sha3"
 )
 
 const (
@@ -87,7 +87,7 @@ func (p *poly) getNoise(seed *[seedBytes]byte, nonce byte) {
 	if err != nil {
 		panic(err)
 	}
-	stream.XORKeyStream(buf[:], buf[:])
+	stream.KeyStream(buf[:])
 	stream.Reset()
 
 	// First half of the output.
