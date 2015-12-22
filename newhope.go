@@ -7,7 +7,7 @@
 
 // Package newhope implements a key exchange based on the Ring Learning with
 // Errors Problem.  It is a mechanical port of the Public Domain implementation
-// by Erdem Alkim, Léo Ducas, Thomas Pöppelmann, and Peter Schwabe4.
+// by Erdem Alkim, Léo Ducas, Thomas Pöppelmann, and Peter Schwabe.
 //
 // For more information see: https://cryptojedi.org/papers/newhope-20151110.pdf
 //
