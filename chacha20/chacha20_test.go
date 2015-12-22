@@ -9,6 +9,7 @@ package chacha20
 
 import (
 	"bytes"
+	"crypto/rand"
 	"testing"
 )
 
@@ -292,6 +293,46 @@ func TestChaCha20(t *testing.T) {
 		if !bytes.Equal(out, v.stream) {
 			t.Errorf("[%s]: out != stream (%x != %x)", v.name, out, v.stream)
 		}
+	}
+}
+
+func TestChaCha20Vectorized(t *testing.T) {
+	if !usingVectors {
+		t.Skip("vectorized ChaCha20 support not compiled in")
+	}
+
+	// Save the batch blocks processing routine so we can mess with it, and
+	// restore it when we're done.
+	oldBlocksFn := blocksFn
+	defer func() {
+		blocksFn = oldBlocksFn
+	}()
+
+	// Generate a random key, nonce and input.
+	var key [KeySize]byte
+	var nonce [NonceSize]byte
+	var input [1024 * 1024]byte
+	rand.Read(key[:])
+	rand.Read(nonce[:])
+	rand.Read(input[:])
+
+	// Encrypt with the vectorized implementation.
+	c, err := NewCipher(key[:], nonce[:])
+	if err != nil {
+		t.Fatal(err)
+	}
+	var vecOut [1024 * 1024]byte
+	c.XORKeyStream(vecOut[:], input[:])
+
+	c, err = NewCipher(key[:], nonce[:])
+	if err != nil {
+		t.Fatal(err)
+	}
+	var refOut [1024 * 1024]byte
+	blocksFn = blocksRef
+	c.XORKeyStream(refOut[:], input[:])
+	if !bytes.Equal(refOut[:], vecOut[:]) {
+		t.Errorf("refOut != vecOut")
 	}
 }
 
