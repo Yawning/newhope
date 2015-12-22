@@ -49,7 +49,6 @@ var (
 
 	useUnsafe     = false
 	usingVectors  = false
-	singleBlockFn = blocksRef
 	blocksFn      = blocksRef
 )
 
@@ -97,7 +96,7 @@ func (c *Cipher) XORKeyStream(dst, src []byte) {
 
 			// If there's a partial block, generate 1 block of keystream into
 			// the internal buffer.
-			singleBlockFn(&c.state, nil, c.buf[:], 1)
+			blocksFn(&c.state, nil, c.buf[:], 1)
 			c.off = 0
 		}
 
@@ -137,7 +136,7 @@ func (c *Cipher) KeyStream(dst []byte) {
 
 			// If there's a partial block, generate 1 block of keystream into
 			// the internal buffer.
-			singleBlockFn(&c.state, nil, c.buf[:], 1)
+			blocksFn(&c.state, nil, c.buf[:], 1)
 			c.off = 0
 		}
 

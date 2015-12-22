@@ -332,6 +332,12 @@ func TestChaCha20Vectorized(t *testing.T) {
 	blocksFn = blocksRef
 	c.XORKeyStream(refOut[:], input[:])
 	if !bytes.Equal(refOut[:], vecOut[:]) {
+		for i, v := range refOut {
+			if vecOut[i] != v {
+				t.Errorf("mismatch at offset: %d", i)
+				break
+			}
+		}
 		t.Errorf("refOut != vecOut")
 	}
 }
