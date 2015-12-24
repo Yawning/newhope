@@ -29,7 +29,7 @@ vector_loop_begin:
 		MOVO X2, X14
 		MOVO X11, X15
 		PADDQ 0(BX), X15
-		MOVQ $20, CX
+		MOVQ $20, BP
 rounds_loop0_begin:
 			PADDL X5, X4
 			PXOR X4, X7
@@ -193,7 +193,7 @@ rounds_loop0_begin:
 			PSHUFL $147, X13, X13
 			PSHUFL $78, X14, X14
 			PSHUFL $57, X15, X15
-			SUBQ $2, CX
+			SUBQ $2, BP
 			JNE rounds_loop0_begin
 		PADDL 0(AX), X4
 		PADDL X1, X5
@@ -258,7 +258,7 @@ serial_loop_begin:
 		MOVO X1, X5
 		MOVO X2, X6
 		MOVO X3, X7
-		MOVQ $20, CX
+		MOVQ $20, BP
 rounds_loop1_begin:
 			PADDL X5, X4
 			PXOR X4, X7
@@ -314,7 +314,7 @@ rounds_loop1_begin:
 			PSHUFL $147, X5, X5
 			PSHUFL $78, X6, X6
 			PSHUFL $57, X7, X7
-			SUBQ $2, CX
+			SUBQ $2, BP
 			JNE rounds_loop1_begin
 		PADDL 0(AX), X4
 		PADDL X1, X5
@@ -338,4 +338,5 @@ rounds_loop1_begin:
 		SUBQ $1, SI
 		JNE serial_loop_begin
 serial_loop_end:
+	MOVOU X3, 32(CX)
 	RET

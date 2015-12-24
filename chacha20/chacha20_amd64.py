@@ -28,7 +28,7 @@ from peachpy.x86_64 import *
 
 sigma = Argument(ptr(const_uint32_t))
 one = Argument(ptr(const_uint32_t))
-x = Argument(ptr(const_uint32_t))
+x = Argument(ptr(uint32_t))
 inp = Argument(ptr(const_uint8_t))
 outp = Argument(ptr(uint8_t))
 nrBlocks = Argument(ptr(size_t))
@@ -256,5 +256,9 @@ with Function("blocksAmd64SSE2", (sigma, one, x, inp, outp, nrBlocks)):
 
         SUB(reg_blocks, 1)
         JNZ(serial_loop.begin)
+
+    # Write back the updated counter.  Stoping at 2^70 bytes is the user's
+    # problem, not mine.
+    MOVDQU([reg_x+32], xmm_s3)
 
     RETURN()
