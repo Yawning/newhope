@@ -7,7 +7,7 @@
 
 package newhope
 
-import "github.com/yawning/newhope/chacha20"
+import "git.schwanenlied.me/yawning/newhope.git/chacha20"
 
 func abs(v int32) int32 {
 	mask := v >> 31
