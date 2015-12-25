@@ -10,7 +10,10 @@ package chacha20
 
 func blocksAmd64SSE2(sigma, one, x *uint32, in, out *byte, nrBlocks uint)
 
-// One day these won't be parameters when PeachPy fixes issue #11.
+// One day these won't be parameters when PeachPy fixes issue #11, and they
+// can be made into local data, though leaving them as is isn't horrible
+// since the assembly code doesn't have XMM registers to spare.  Minor gain
+// from being able to ensure they're 16 byte aligned.
 var one = [4]uint32{1, 0, 0, 0}
 var sigma = [4]uint32{ sigma0, sigma1, sigma2, sigma3 }
 
