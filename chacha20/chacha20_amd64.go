@@ -15,7 +15,7 @@ func blocksAmd64SSE2(sigma, one, x *uint32, in, out *byte, nrBlocks uint)
 // since the assembly code doesn't have XMM registers to spare.  Minor gain
 // from being able to ensure they're 16 byte aligned.
 var one = [4]uint32{1, 0, 0, 0}
-var sigma = [4]uint32{ sigma0, sigma1, sigma2, sigma3 }
+var sigma = [4]uint32{sigma0, sigma1, sigma2, sigma3}
 
 func blocksAmd64(x *[stateSize]uint32, in []byte, out []byte, nrBlocks int) {
 	if in == nil {

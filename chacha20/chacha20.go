@@ -47,9 +47,9 @@ var (
 	// ErrInvalidNonce is the error returned when the nonce is invalid.
 	ErrInvalidNonce = errors.New("nonce length must be NonceSize/XNonceSize bytes")
 
-	useUnsafe     = false
-	usingVectors  = false
-	blocksFn      = blocksRef
+	useUnsafe    = false
+	usingVectors = false
+	blocksFn     = blocksRef
 )
 
 // A Cipher is an instance of ChaCha20/XChaCha20 using a particular key and
@@ -154,10 +154,11 @@ func (c *Cipher) KeyStream(dst []byte) {
 	}
 }
 
-// NewCipher returns a new ChaCha20/XChaCha20 instance.
-func NewCipher(key, nonce []byte) (*Cipher, error) {
+// ReKey reinitializes the ChaCha20/XChaCha20 instance with the provided key
+// and nonce.
+func (c *Cipher) ReKey(key, nonce []byte) error {
 	if len(key) != KeySize {
-		return nil, ErrInvalidKey
+		return ErrInvalidKey
 	}
 
 	switch len(nonce) {
@@ -175,10 +176,10 @@ func NewCipher(key, nonce []byte) (*Cipher, error) {
 			}
 		}()
 	default:
-		return nil, ErrInvalidNonce
+		return ErrInvalidNonce
 	}
 
-	c := new(Cipher)
+	c.Reset()
 	c.state[0] = binary.LittleEndian.Uint32(key[0:4])
 	c.state[1] = binary.LittleEndian.Uint32(key[4:8])
 	c.state[2] = binary.LittleEndian.Uint32(key[8:12])
@@ -192,6 +193,16 @@ func NewCipher(key, nonce []byte) (*Cipher, error) {
 	c.state[10] = binary.LittleEndian.Uint32(nonce[0:4])
 	c.state[11] = binary.LittleEndian.Uint32(nonce[4:8])
 	c.off = BlockSize
+	return nil
+
+}
+
+// NewCipher returns a new ChaCha20/XChaCha20 instance.
+func NewCipher(key, nonce []byte) (*Cipher, error) {
+	c := new(Cipher)
+	if err := c.ReKey(key, nonce); err != nil {
+		return nil, err
+	}
 	return c, nil
 }
 
