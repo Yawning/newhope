@@ -10,7 +10,7 @@ package newhope
 import (
 	"encoding/binary"
 
-	"git.schwanenlied.me/yawning/newhope.git/chacha20"
+	"git.schwanenlied.me/yawning/chacha20.git"
 	"golang.org/x/crypto/sha3"
 )
 
