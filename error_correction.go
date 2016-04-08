@@ -62,7 +62,7 @@ func llDecode(xi0, xi1, xi2, xi3 int32) int16 {
 	return int16(t & 1)
 }
 
-func (c *poly) helpRec(v *poly, seed *[seedBytes]byte, nonce byte) {
+func (c *poly) helpRec(v *poly, seed *[SeedBytes]byte, nonce byte) {
 	var v0, v1, vTmp [4]int32
 	var k int32
 	var rand [32]byte
@@ -81,13 +81,7 @@ func (c *poly) helpRec(v *poly, seed *[seedBytes]byte, nonce byte) {
 	for i := uint(0); i < 256; i++ {
 		rBit := int32((rand[i>>3] >> (i & 7)) & 1)
 
-		vTmp[0], vTmp[1], vTmp[2], vTmp[3] = int32(v.v[i]), int32(v.v[256+i]), int32(v.v[512+i]), int32(v.v[768+i])
-
-		// newhope-20151110 - Old version of the reconciliation.
-		// k = f(&v0[0], &v1[0], 8*vTmp[0]+4*paramQ*rBit)
-		// k += f(&v0[1], &v1[1], 8*vTmp[1]+4*paramQ*rBit)
-		// k += f(&v0[2], &v1[2], 8*vTmp[2]+4*paramQ*int32(rBit))
-		// k += f(&v0[3], &v1[3], 8*vTmp[3]+4*paramQ*int32(rBit))
+		vTmp[0], vTmp[1], vTmp[2], vTmp[3] = int32(v.coeffs[i]), int32(v.coeffs[256+i]), int32(v.coeffs[512+i]), int32(v.coeffs[768+i])
 
 		// newhope-20151209 - New version of the reconciliation.
 		k = f(&v0[0], &v1[0], 8*vTmp[0]+4*rBit)
@@ -102,10 +96,10 @@ func (c *poly) helpRec(v *poly, seed *[seedBytes]byte, nonce byte) {
 		vTmp[2] = ((^k) & v0[2]) ^ (k & v1[2])
 		vTmp[3] = ((^k) & v0[3]) ^ (k & v1[3])
 
-		c.v[0+i] = uint16((vTmp[0] - vTmp[3]) & 3)
-		c.v[256+i] = uint16((vTmp[1] - vTmp[3]) & 3)
-		c.v[512+i] = uint16((vTmp[2] - vTmp[3]) & 3)
-		c.v[768+i] = uint16((-k + 2*vTmp[3]) & 3)
+		c.coeffs[0+i] = uint16((vTmp[0] - vTmp[3]) & 3)
+		c.coeffs[256+i] = uint16((vTmp[1] - vTmp[3]) & 3)
+		c.coeffs[512+i] = uint16((vTmp[2] - vTmp[3]) & 3)
+		c.coeffs[768+i] = uint16((-k + 2*vTmp[3]) & 3)
 	}
 
 	for i := range vTmp {
@@ -120,8 +114,8 @@ func rec(key *[32]byte, v, c *poly) {
 	}
 
 	for i := uint(0); i < 256; i++ {
-		vTmp[0], vTmp[1], vTmp[2], vTmp[3] = int32(v.v[i]), int32(v.v[256+i]), int32(v.v[512+i]), int32(v.v[768+i])
-		cTmp[0], cTmp[1], cTmp[2], cTmp[3] = int32(c.v[i]), int32(c.v[256+i]), int32(c.v[512+i]), int32(c.v[768+i])
+		vTmp[0], vTmp[1], vTmp[2], vTmp[3] = int32(v.coeffs[i]), int32(v.coeffs[256+i]), int32(v.coeffs[512+i]), int32(v.coeffs[768+i])
+		cTmp[0], cTmp[1], cTmp[2], cTmp[3] = int32(c.coeffs[i]), int32(c.coeffs[256+i]), int32(c.coeffs[512+i]), int32(c.coeffs[768+i])
 		tmp[0] = 16*paramQ + 8*vTmp[0] - paramQ*(2*cTmp[0]+cTmp[3])
 		tmp[1] = 16*paramQ + 8*vTmp[1] - paramQ*(2*cTmp[1]+cTmp[3])
 		tmp[2] = 16*paramQ + 8*vTmp[2] - paramQ*(2*cTmp[2]+cTmp[3])

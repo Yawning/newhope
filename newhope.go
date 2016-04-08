@@ -25,41 +25,46 @@ const (
 
 	// UpstreamVersion is the version of the upstream package this
 	// implementation is compatible with.
-	UpstreamVersion = "20151209"
+	UpstreamVersion = "20160328"
+
+	// RecBytes is the length of the reconciliation data in bytes.
+	RecBytes = 256
+
+	// SendASize is the length of Alice's public key in bytes.
+	SendASize = PolyBytes + SeedBytes
+
+	// SendBSize is the length of Bob's public key in bytes.
+	SendBSize = PolyBytes + RecBytes
 )
 
-func encodeA(r []byte, pk *poly, seed *[seedBytes]byte) {
+func encodeA(r []byte, pk *poly, seed *[SeedBytes]byte) {
 	pk.toBytes(r)
-	for i, v := range seed {
-		for j := 0; j < 4; j++ {
-			r[2*(4*i+j)+1] |= v << 6
-			v >>= 2
-		}
+	for i := 0; i < SeedBytes; i++ {
+		r[PolyBytes+i] = seed[i]
 	}
 }
 
-func decodeA(pk *poly, seed *[seedBytes]byte, r []byte) {
+func decodeA(pk *poly, seed *[SeedBytes]byte, r []byte) {
 	pk.fromBytes(r)
-
 	for i := range seed {
-		seed[i] = 0
-		for j := uint(0); j < 4; j++ {
-			seed[i] |= byte(r[2*(4*uint(i)+j)+1]>>6) << (2 * j)
-		}
+		seed[i] = r[PolyBytes+i]
 	}
 }
 
 func encodeB(r []byte, b *poly, c *poly) {
 	b.toBytes(r)
-	for i, v := range c.v {
-		r[2*i+1] |= byte(v << 6)
+	for i := 0; i < paramN/4; i++ {
+		r[PolyBytes+i] = byte(c.coeffs[4*i]) | byte(c.coeffs[4*i+1]<<2) | byte(c.coeffs[4*i+2]<<4) | byte(c.coeffs[4*i+3]<<6)
 	}
 }
 
 func decodeB(b *poly, c *poly, r []byte) {
 	b.fromBytes(r)
-	for i := range c.v {
-		c.v[i] = uint16(r[2*i+1] >> 6)
+	for i := 0; i < paramN/4; i++ {
+		c.coeffs[4*i+0] = uint16(r[PolyBytes+i]) & 0x03
+		c.coeffs[4*i+1] = uint16(r[PolyBytes+i]>>2) & 0x03
+		c.coeffs[4*i+2] = uint16(r[PolyBytes+i]>>4) & 0x03
+		c.coeffs[4*i+3] = uint16(r[PolyBytes+i] >> 6)
 	}
 }
 
@@ -69,13 +74,13 @@ func memwipe(b []byte) {
 	}
 }
 
-// PublicKey is a New Hope public key.
-type PublicKey struct {
-	Send [PolyBytes]byte
+// PublicKeyAlice is Alice's New Hope public key.
+type PublicKeyAlice struct {
+	Send [SendASize]byte
 }
 
-// PrivateKey is a New Hope private key.
-type PrivateKey struct {
+// PrivateKeyAlice is Alice's New Hope private key.
+type PrivateKeyAlice struct {
 	sk poly
 }
 
@@ -83,9 +88,9 @@ type PrivateKey struct {
 // generated using the given reader, which must return random data.  The
 // receiver side of the key exchange (aka "Bob") MUST use KeyExchangeBob()
 // instead of this routine.
-func GenerateKeyPair(rand io.Reader) (*PrivateKey, *PublicKey, error) {
+func GenerateKeyPair(rand io.Reader) (*PrivateKeyAlice, *PublicKeyAlice, error) {
 	var a, e, pk, r poly
-	var seed, noiseSeed [seedBytes]byte
+	var seed, noiseSeed [SeedBytes]byte
 
 	// seed <- Sample({0, 1}^256)
 	if _, err := io.ReadFull(rand, seed[:]); err != nil {
@@ -99,14 +104,14 @@ func GenerateKeyPair(rand io.Reader) (*PrivateKey, *PublicKey, error) {
 		return nil, nil, err
 	}
 	defer memwipe(noiseSeed[:])
-	privKey := new(PrivateKey)
+	privKey := new(PrivateKeyAlice)
 	privKey.sk.getNoise(&noiseSeed, 0)
 	privKey.sk.ntt()
 	e.getNoise(&noiseSeed, 1)
 	e.ntt()
 
 	// b <- as + e
-	pubKey := new(PublicKey)
+	pubKey := new(PublicKeyAlice)
 	r.pointwise(&privKey.sk, &a)
 	pk.add(&e, &r)
 	encodeA(pubKey.Send[:], &pk, &seed)
@@ -114,12 +119,17 @@ func GenerateKeyPair(rand io.Reader) (*PrivateKey, *PublicKey, error) {
 	return privKey, pubKey, nil
 }
 
+// PublicKeyBob is Bob's New Hope public key.
+type PublicKeyBob struct {
+	Send [SendBSize]byte
+}
+
 // KeyExchangeBob is the Responder side of the Ring-LWE key exchange.  The
 // shared secret and "public key" (key + reconciliation data) are generated
 // using the given reader, which must return random data.
-func KeyExchangeBob(rand io.Reader, alicePk *PublicKey) (*PublicKey, []byte, error) {
+func KeyExchangeBob(rand io.Reader, alicePk *PublicKeyAlice) (*PublicKeyBob, []byte, error) {
 	var pka, a, sp, ep, u, v, epp, r poly
-	var seed, noiseSeed [seedBytes]byte
+	var seed, noiseSeed [SeedBytes]byte
 
 	if _, err := io.ReadFull(rand, noiseSeed[:]); err != nil {
 		return nil, nil, err
@@ -143,14 +153,13 @@ func KeyExchangeBob(rand io.Reader, alicePk *PublicKey) (*PublicKey, []byte, err
 
 	// v <- bs' + e''
 	v.pointwise(&pka, &sp)
-	v.bitrev()
 	v.invNtt()
 	v.add(&v, &epp)
 
 	// r <- Sample(HelpRec(v))
 	r.helpRec(&v, &noiseSeed, 3)
 
-	pubKey := new(PublicKey)
+	pubKey := new(PublicKeyBob)
 	encodeB(pubKey.Send[:], &u, &r)
 
 	// nu <- Rec(v, r)
@@ -171,14 +180,13 @@ func KeyExchangeBob(rand io.Reader, alicePk *PublicKey) (*PublicKey, []byte, err
 // KeyExchangeAlice is the Initiaitor side of the Ring-LWE key exchange.  The
 // provided private key is obliterated prior to returning, to promote
 // implementing Perfect Forward Secrecy.
-func KeyExchangeAlice(bobPk *PublicKey, aliceSk *PrivateKey) ([]byte, error) {
+func KeyExchangeAlice(bobPk *PublicKeyBob, aliceSk *PrivateKeyAlice) ([]byte, error) {
 	var u, r, vp poly
 
 	decodeB(&u, &r, bobPk.Send[:])
 
 	// v' <- us
 	vp.pointwise(&aliceSk.sk, &u)
-	vp.bitrev()
 	vp.invNtt()
 
 	// nu <- Rec(v', r)

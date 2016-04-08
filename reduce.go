@@ -7,6 +7,10 @@
 
 package newhope
 
+// Incomplete-reduction routines; for details on allowed input ranges
+// and produced output ranges, see the description in the paper:
+// https://cryptojedi.org/papers/#newhope
+
 const (
 	qinv = 12287 // -inverse_mod(p,2^18)
 	rlog = 18

@@ -16,41 +16,71 @@ import (
 
 const (
 	// PolyBytes is the length of an encoded polynomial in bytes.
-	PolyBytes = 2048
+	PolyBytes = 1792
 
 	shake128Rate = 168 // Stupid that this isn't exposed.
 )
 
 type poly struct {
-	v [paramN]uint16
+	coeffs [paramN]uint16
 }
 
 func (p *poly) reset() {
-	for i := range p.v {
-		p.v[i] = 0
+	for i := range p.coeffs {
+		p.coeffs[i] = 0
 	}
 }
 
 func (p *poly) fromBytes(a []byte) {
-	for i := range p.v {
-		p.v[i] = binary.LittleEndian.Uint16(a[2*i:]) & 0x3fff
+	for i := 0; i < paramN/4; i++ {
+		p.coeffs[4*i+0] = uint16(a[7*i+0]) | ((uint16(a[7*i+1]) & 0x3f) << 8)
+		p.coeffs[4*i+1] = (uint16(a[7*i+1]) >> 6) | (uint16(a[7*i+2]) << 2) | ((uint16(a[7*i+3]) & 0x0f) << 10)
+
+		p.coeffs[4*i+2] = (uint16(a[7*i+3]) >> 4) | (uint16(a[7*i+4]) << 4) | ((uint16(a[7*i+5]) & 0x03) << 12)
+		p.coeffs[4*i+3] = (uint16(a[7*i+5]) >> 2) | (uint16(a[7*i+6]) << 6)
 	}
 }
 
 func (p *poly) toBytes(r []byte) {
-	for i, v := range p.v {
+	for i := 0; i < paramN/4; i++ {
 		// Make sure that coefficients have only 14 bits.
-		t := barrettReduce(v)
-		m := t - paramQ
+		t0 := barrettReduce(p.coeffs[4*i+0])
+		t1 := barrettReduce(p.coeffs[4*i+1])
+		t2 := barrettReduce(p.coeffs[4*i+2])
+		t3 := barrettReduce(p.coeffs[4*i+3])
+
+		// Make sure that coefficients are in [0,q]
+		m := t0 - paramQ
 		c := int16(m)
 		c >>= 15
-		// Make sure that coefficients are in [0,q]
-		t = m ^ ((t ^ m) & uint16(c))
-		binary.LittleEndian.PutUint16(r[2*i:], t)
+		t0 = m ^ ((t0 ^ m) & uint16(c))
+
+		m = t1 - paramQ
+		c = int16(m)
+		c >>= 15
+		t1 = m ^ ((t1 ^ m) & uint16(c))
+
+		m = t2 - paramQ
+		c = int16(m)
+		c >>= 15
+		t2 = m ^ ((t2 ^ m) & uint16(c))
+
+		m = t3 - paramQ
+		c = int16(m)
+		c >>= 15
+		t3 = m ^ ((t3 ^ m) & uint16(c))
+
+		r[7*i+0] = byte(t0 & 0xff)
+		r[7*i+1] = byte(t0>>8) | byte(t1<<6)
+		r[7*i+2] = byte(t1 >> 2)
+		r[7*i+3] = byte(t1>>10) | byte(t2<<4)
+		r[7*i+4] = byte(t2 >> 4)
+		r[7*i+5] = byte(t2>>12) | byte(t3<<2)
+		r[7*i+6] = byte(t3 >> 6)
 	}
 }
 
-func (p *poly) uniform(seed *[seedBytes]byte) {
+func (p *poly) uniform(seed *[SeedBytes]byte) {
 	nBlocks := 16
 	var buf [shake128Rate * 16]byte
 
@@ -64,7 +94,7 @@ func (p *poly) uniform(seed *[seedBytes]byte) {
 		val := binary.LittleEndian.Uint16(buf[pos:]) & 0x3fff
 
 		if val < paramQ {
-			p.v[ctr] = val
+			p.coeffs[ctr] = val
 			ctr++
 		}
 		pos += 2
@@ -76,11 +106,9 @@ func (p *poly) uniform(seed *[seedBytes]byte) {
 	}
 }
 
-func (p *poly) getNoise(seed *[seedBytes]byte, nonce byte) {
-	var buf [3 * paramN]byte
+func (p *poly) getNoise(seed *[SeedBytes]byte, nonce byte) {
+	var buf [4 * paramN]byte
 	var n [8]byte
-	var v uint32
-	var b [4]byte
 
 	n[0] = nonce
 	stream, err := chacha20.NewCipher(seed[:], n[:])
@@ -90,69 +118,47 @@ func (p *poly) getNoise(seed *[seedBytes]byte, nonce byte) {
 	stream.KeyStream(buf[:])
 	stream.Reset()
 
-	// First half of the output.
-	for i := 0; i < paramN/2; i += 2 {
-		v = 0
-		jV := binary.LittleEndian.Uint32(buf[2*i:])
+	for i := 0; i < paramN; i++ {
+		t := binary.LittleEndian.Uint32(buf[4*i:])
+		d := uint32(0)
 		for j := uint(0); j < 8; j++ {
-			v += (jV >> j) & 0x01010101
+			d += (t >> j) & 0x01010101
 		}
-		jV = binary.LittleEndian.Uint32(buf[2*i+2*paramN:])
-		for j := uint(0); j < 4; j++ {
-			v += (jV >> j) & 0x01010101
-		}
-		binary.LittleEndian.PutUint32(b[0:], v)
-		p.v[i] = paramQ + uint16(b[0]) - uint16(b[1])
-		p.v[i+1] = paramQ + uint16(b[2]) - uint16(b[3])
-	}
-
-	// Second half of the output.
-	for i := 0; i < paramN/2; i += 2 {
-		v = 0
-		jV := binary.LittleEndian.Uint32(buf[2*i+paramN:])
-		for j := uint(0); j < 8; j++ {
-			v += (jV >> j) & 0x01010101
-		}
-		jV = binary.LittleEndian.Uint32(buf[2*i+2*paramN:])
-		for j := uint(0); j < 4; j++ {
-			v += (jV >> (j + 4)) & 0x01010101
-		}
-		binary.LittleEndian.PutUint32(b[0:], v)
-		p.v[i+paramN/2] = paramQ + uint16(b[0]) - uint16(b[1])
-		p.v[i+paramN/2+1] = paramQ + uint16(b[2]) - uint16(b[3])
+		a := ((d >> 8) & 0xff) + (d & 0xff)
+		b := (d >> 24) + ((d >> 16) & 0xff)
+		p.coeffs[i] = uint16(a) + paramQ - uint16(b)
 	}
 
 	// Scrub the random bits...
-	v = 0
-	memwipe(b[:])
 	memwipe(buf[:])
 }
 
 func (p *poly) pointwise(a, b *poly) {
-	for i := range p.v {
-		t := montgomeryReduce(3186 * uint32(b.v[i]))          // t is now in Montgomery domain
-		p.v[i] = montgomeryReduce(uint32(a.v[i]) * uint32(t)) // p.v[i] is back in normal domain
+	for i := range p.coeffs {
+		t := montgomeryReduce(3186 * uint32(b.coeffs[i]))               // t is now in Montgomery domain
+		p.coeffs[i] = montgomeryReduce(uint32(a.coeffs[i]) * uint32(t)) // p.coeffs[i] is back in normal domain
 	}
 }
 
 func (p *poly) add(a, b *poly) {
-	for i := range p.v {
-		p.v[i] = barrettReduce(a.v[i] + b.v[i])
+	for i := range p.coeffs {
+		p.coeffs[i] = barrettReduce(a.coeffs[i] + b.coeffs[i])
 	}
 }
 
 func (p *poly) ntt() {
 	p.mulCoefficients(&psisBitrevMontgomery)
-	ntt(&p.v, &omegasMontgomery)
+	ntt(&p.coeffs, &omegasMontgomery)
 }
 
 func (p *poly) invNtt() {
-	ntt(&p.v, &omegasInvMontgomery)
+	p.bitrev()
+	ntt(&p.coeffs, &omegasInvMontgomery)
 	p.mulCoefficients(&psisInvMontgomery)
 }
 
 func init() {
-	if paramK != 12 {
-		panic("poly.getNoise() only supports k=12")
+	if paramK != 16 {
+		panic("poly.getNoise() only supports k=16")
 	}
 }

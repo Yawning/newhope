@@ -8,8 +8,10 @@
 package newhope
 
 const (
-	paramN    = 1024
-	paramK    = 12 // used in sampler
-	paramQ    = 12289
-	seedBytes = 32
+	paramN = 1024
+	paramK = 16 // used in sampler
+	paramQ = 12289
+
+	// SeedBytes is the size of the seed in bytes.
+	SeedBytes = 32
 )

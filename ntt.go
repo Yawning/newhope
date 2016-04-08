@@ -83,18 +83,18 @@ var bitrevTable = [paramN]uint16{
 }
 
 func (p *poly) bitrev() {
-	for i, v := range p.v {
+	for i, v := range p.coeffs {
 		r := bitrevTable[i]
 		if uint16(i) < r {
-			p.v[i] = p.v[r]
-			p.v[r] = v
+			p.coeffs[i] = p.coeffs[r]
+			p.coeffs[r] = v
 		}
 	}
 }
 
 func (p *poly) mulCoefficients(factors *[paramN]uint16) {
 	for i, v := range factors {
-		p.v[i] = montgomeryReduce(uint32(p.v[i]) * uint32(v))
+		p.coeffs[i] = montgomeryReduce(uint32(p.coeffs[i]) * uint32(v))
 	}
 }
 
