@@ -84,6 +84,12 @@ type PrivateKeyAlice struct {
 	sk poly
 }
 
+// Reset clears all sensitive information such that it no longer appears in
+// memory.
+func (k *PrivateKeyAlice) Reset() {
+	k.sk.reset()
+}
+
 // GenerateKeyPair returns a private/public key pair.  The private key is
 // generated using the given reader, which must return random data.  The
 // receiver side of the key exchange (aka "Bob") MUST use KeyExchangeBob()
@@ -199,7 +205,7 @@ func KeyExchangeAlice(bobPk *PublicKeyBob, aliceSk *PrivateKeyAlice) ([]byte, er
 	// Scrub the sensitive stuff...
 	memwipe(nu[:])
 	vp.reset()
-	aliceSk.sk.reset()
+	aliceSk.Reset()
 
 	return mu[:], nil
 }
