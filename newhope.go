@@ -9,7 +9,7 @@
 // Errors Problem.  It is a mechanical port of the Public Domain implementation
 // by Erdem Alkim, Léo Ducas, Thomas Pöppelmann, and Peter Schwabe.
 //
-// For more information see: https://cryptojedi.org/papers/newhope-20151110.pdf
+// For more information see: https://cryptojedi.org/papers/newhope-20160328.pdf
 //
 package newhope
 
