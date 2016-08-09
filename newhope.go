@@ -9,7 +9,7 @@
 // Errors Problem.  It is a mechanical port of the Public Domain implementation
 // by Erdem Alkim, Léo Ducas, Thomas Pöppelmann, and Peter Schwabe.
 //
-// For more information see: https://cryptojedi.org/papers/newhope-20160328.pdf
+// For more information see: https://cryptojedi.org/papers/newhope-20160803.pdf
 //
 package newhope
 
@@ -25,7 +25,7 @@ const (
 
 	// UpstreamVersion is the version of the upstream package this
 	// implementation is compatible with.
-	UpstreamVersion = "20160328"
+	UpstreamVersion = "20160803"
 
 	// RecBytes is the length of the reconciliation data in bytes.
 	RecBytes = 256
@@ -102,6 +102,7 @@ func GenerateKeyPair(rand io.Reader) (*PrivateKeyAlice, *PublicKeyAlice, error) 
 	if _, err := io.ReadFull(rand, seed[:]); err != nil {
 		return nil, nil, err
 	}
+	seed = sha3.Sum256(seed[:]) // Don't send output of system RNG.
 	// a <- Parse(SHAKE-128(seed))
 	a.uniform(&seed)
 

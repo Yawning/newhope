@@ -81,8 +81,8 @@ func (p *poly) toBytes(r []byte) {
 }
 
 func (p *poly) uniform(seed *[SeedBytes]byte) {
-	nBlocks := 16
-	var buf [shake128Rate * 16]byte
+	nBlocks := 14
+	var buf [shake128Rate * 14]byte
 
 	// h and buf are left unscrubbed because the output is public.
 	h := sha3.NewShake128()
@@ -90,10 +90,9 @@ func (p *poly) uniform(seed *[SeedBytes]byte) {
 	h.Read(buf[:])
 
 	for ctr, pos := 0, 0; ctr < paramN; {
-		// Specialized for q = 12889.
-		val := binary.LittleEndian.Uint16(buf[pos:]) & 0x3fff
+		val := binary.LittleEndian.Uint16(buf[pos:])
 
-		if val < paramQ {
+		if val < 5*paramQ {
 			p.coeffs[ctr] = val
 			ctr++
 		}
@@ -107,6 +106,8 @@ func (p *poly) uniform(seed *[SeedBytes]byte) {
 }
 
 func (p *poly) getNoise(seed *[SeedBytes]byte, nonce byte) {
+	// The `ref` code uses a uint32 vector instead of a byte vector,
+	// but converting between the two in Go is cumbersome.
 	var buf [4 * paramN]byte
 	var n [8]byte
 

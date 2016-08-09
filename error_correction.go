@@ -15,6 +15,9 @@ func abs(v int32) int32 {
 }
 
 func f(v0, v1 *int32, x int32) int32 {
+	// The`ref` code uses uint32 for x, but none of the values ever get large
+	// enough for that, and that would be cast-tastic due to Go being Go.
+
 	// Next 6 lines compute t = x/PARAM_Q
 	b := x * 2730
 	t := b >> 25
