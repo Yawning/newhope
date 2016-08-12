@@ -13,13 +13,23 @@ import (
 	"testing"
 )
 
-func BenchmarkKeyGen(b *testing.B) {
+func benchmarkKeyGen(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		GenerateKeyPair(rand.Reader)
 	}
 }
 
-func BenchmarkAlice(b *testing.B) {
+func BenchmarkKeyGen(b *testing.B) {
+	TorSampling = false
+	benchmarkKeyGen(b)
+}
+
+func BenchmarkKeyGenTor(b *testing.B) {
+	TorSampling = true
+	benchmarkKeyGen(b)
+}
+
+func benchmarkAlice(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Generate Alice's key's.
 		alicePriv, alicePub, err := GenerateKeyPair(rand.Reader)
@@ -46,40 +56,60 @@ func BenchmarkAlice(b *testing.B) {
 			b.Fatalf("shared secrets mismatched")
 		}
 		b.StartTimer()
+	}
+}
+
+func BenchmarkAlice(b *testing.B) {
+	TorSampling = false
+	benchmarkAlice(b)
+}
+
+func BenchmarkAliceTor(b *testing.B) {
+	TorSampling = true
+	benchmarkAlice(b)
+}
+
+func benchmarkBob(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+
+		// Generate Alice's key's.
+		alicePriv, alicePub, err := GenerateKeyPair(rand.Reader)
+		if err != nil {
+			b.Fatalf("GenerateKeyPair failed: %v", err)
+		}
+
+		// Finish Bob's handshake.
+		b.StartTimer()
+		bobPub, bobShared, err := KeyExchangeBob(rand.Reader, alicePub)
+		if err != nil {
+			b.Fatalf("KeyExchangeBob failed: %v", err)
+		}
+		b.StopTimer()
+
+		// Finish Alice's handshake.
+		aliceShared, err := KeyExchangeAlice(bobPub, alicePriv)
+		if err != nil {
+			b.Fatalf("KeyExchangeAlice failed: %v", err)
+		}
+
+		if !bytes.Equal(aliceShared, bobShared) {
+			b.Fatalf("shared secrets mismatched")
+		}
 	}
 }
 
 func BenchmarkBob(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		b.StopTimer()
-
-		// Generate Alice's key's.
-		alicePriv, alicePub, err := GenerateKeyPair(rand.Reader)
-		if err != nil {
-			b.Fatalf("GenerateKeyPair failed: %v", err)
-		}
-
-		// Finish Bob's handshake.
-		b.StartTimer()
-		bobPub, bobShared, err := KeyExchangeBob(rand.Reader, alicePub)
-		if err != nil {
-			b.Fatalf("KeyExchangeBob failed: %v", err)
-		}
-		b.StopTimer()
-
-		// Finish Alice's handshake.
-		aliceShared, err := KeyExchangeAlice(bobPub, alicePriv)
-		if err != nil {
-			b.Fatalf("KeyExchangeAlice failed: %v", err)
-		}
-
-		if !bytes.Equal(aliceShared, bobShared) {
-			b.Fatalf("shared secrets mismatched")
-		}
-	}
+	TorSampling = false
+	benchmarkBob(b)
 }
 
-func TestIntegration(t *testing.T) {
+func BenchmarkBobTor(b *testing.B) {
+	TorSampling = true
+	benchmarkBob(b)
+}
+
+func testIntegration(t *testing.T) {
 	for i := 0; i < 1024; i++ {
 		// Generate Alice's key's.
 		alicePriv, alicePub, err := GenerateKeyPair(rand.Reader)
@@ -104,4 +134,14 @@ func TestIntegration(t *testing.T) {
 		}
 
 	}
+}
+
+func TestIntegration(t *testing.T) {
+	TorSampling = false
+	testIntegration(t)
+}
+
+func TestIntegrationTor(t *testing.T) {
+	TorSampling = true
+	testIntegration(t)
 }

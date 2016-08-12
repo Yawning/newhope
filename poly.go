@@ -80,28 +80,80 @@ func (p *poly) toBytes(r []byte) {
 	}
 }
 
-func (p *poly) uniform(seed *[SeedBytes]byte) {
-	nBlocks := 14
-	var buf [shake128Rate * 14]byte
+func (p *poly) discardTo(xbuf []byte) bool {
+	// At least as of newhope-20160809, the upstream version of
+	// `discardToPoly()` and `uniform()` will break if byteorder between each
+	// side is different.
+	var x [shake128Rate * 16 / 2]uint16
+	for i := range x {
+		// Assume little endian, because that's the most common, and probably
+		// what upstream will settle on.
+		x[i] = binary.LittleEndian.Uint16(xbuf[i*2:])
+	}
 
-	// h and buf are left unscrubbed because the output is public.
-	h := sha3.NewShake128()
-	h.Write(seed[:])
-	h.Read(buf[:])
+	for i := 0; i < 16; i++ {
+		batcher84(x[i:])
+	}
 
-	for ctr, pos := 0, 0; ctr < paramN; {
-		val := binary.LittleEndian.Uint16(buf[pos:])
+	// Check whether we're safe:
+	r := uint16(0)
+	for i := 1000; i < 1024; i++ {
+		r |= 61444 - x[i]
+	}
+	if r>>31 != 0 {
+		return true
+	}
 
-		if val < 5*paramQ {
-			p.coeffs[ctr] = val
-			ctr++
+	// If we are, copy coefficients to polynomial:
+	for i := range p.coeffs {
+		p.coeffs[i] = x[i]
+	}
+
+	return false
+}
+
+func (p *poly) uniform(seed *[SeedBytes]byte, torSampling bool) {
+	if !torSampling {
+		// Reference version, vartime.
+		nBlocks := 14
+		var buf [shake128Rate * 14]byte
+
+		// h and buf are left unscrubbed because the output is public.
+		h := sha3.NewShake128()
+		h.Write(seed[:])
+		h.Read(buf[:])
+
+		for ctr, pos := 0, 0; ctr < paramN; {
+			val := binary.LittleEndian.Uint16(buf[pos:])
+
+			if val < 5*paramQ {
+				p.coeffs[ctr] = val
+				ctr++
+			}
+			pos += 2
+			if pos > shake128Rate*nBlocks-2 {
+				nBlocks = 1
+				h.Read(buf[:shake128Rate])
+				pos = 0
+			}
 		}
-		pos += 2
-		if pos > shake128Rate*nBlocks-2 {
-			nBlocks = 1
-			h.Read(buf[:shake128Rate])
-			pos = 0
+	} else {
+		// `torref` version, every valid `a` is generate in constant time,
+		// though the number of attempts varies.
+		const nBlocks = 16
+		var buf [shake128Rate * nBlocks]byte
+
+		// h and buf are left unscrubbed because the output is public.
+		h := sha3.NewShake128()
+		h.Write(seed[:])
+
+		for {
+			h.Read(buf[:])
+			if !p.discardTo(buf[:]) {
+				break
+			}
 		}
+
 	}
 }
 

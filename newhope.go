@@ -25,7 +25,7 @@ const (
 
 	// UpstreamVersion is the version of the upstream package this
 	// implementation is compatible with.
-	UpstreamVersion = "20160803"
+	UpstreamVersion = "20160809"
 
 	// RecBytes is the length of the reconciliation data in bytes.
 	RecBytes = 256
@@ -36,6 +36,13 @@ const (
 	// SendBSize is the length of Bob's public key in bytes.
 	SendBSize = PolyBytes + RecBytes
 )
+
+// TorSampling enables the constant time generation of the `a` parameter,
+// where every successful `a` generation will take the same amount of time.
+// Most users will probably not want to enable this as it does come with a
+// performance penalty.  Alice and Bob *MUST* agree on the sampling method,
+// or the key exchange will fail.
+var TorSampling = false
 
 func encodeA(r []byte, pk *poly, seed *[SeedBytes]byte) {
 	pk.toBytes(r)
@@ -104,7 +111,7 @@ func GenerateKeyPair(rand io.Reader) (*PrivateKeyAlice, *PublicKeyAlice, error) 
 	}
 	seed = sha3.Sum256(seed[:]) // Don't send output of system RNG.
 	// a <- Parse(SHAKE-128(seed))
-	a.uniform(&seed)
+	a.uniform(&seed, TorSampling)
 
 	// s, e <- Sample(psi(n, 12))
 	if _, err := io.ReadFull(rand, noiseSeed[:]); err != nil {
@@ -145,7 +152,7 @@ func KeyExchangeBob(rand io.Reader, alicePk *PublicKeyAlice) (*PublicKeyBob, []b
 
 	// a <- Parse(SHAKE-128(seed))
 	decodeA(&pka, &seed, alicePk.Send[:])
-	a.uniform(&seed)
+	a.uniform(&seed, TorSampling)
 
 	// s', e', e'' <- Sample(psi(n, 12))
 	sp.getNoise(&noiseSeed, 0)
