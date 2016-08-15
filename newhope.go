@@ -25,7 +25,7 @@ const (
 
 	// UpstreamVersion is the version of the upstream package this
 	// implementation is compatible with.
-	UpstreamVersion = "20160809"
+	UpstreamVersion = "20160815"
 
 	// RecBytes is the length of the reconciliation data in bytes.
 	RecBytes = 256

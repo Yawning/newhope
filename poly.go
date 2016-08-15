@@ -81,13 +81,8 @@ func (p *poly) toBytes(r []byte) {
 }
 
 func (p *poly) discardTo(xbuf []byte) bool {
-	// At least as of newhope-20160809, the upstream version of
-	// `discardToPoly()` and `uniform()` will break if byteorder between each
-	// side is different.
 	var x [shake128Rate * 16 / 2]uint16
 	for i := range x {
-		// Assume little endian, because that's the most common, and probably
-		// what upstream will settle on.
 		x[i] = binary.LittleEndian.Uint16(xbuf[i*2:])
 	}
 
