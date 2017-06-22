@@ -77,7 +77,6 @@ func benchKeyExchangeBob(b *testing.B) {
 			b.Fatalf("shared secrets mismatched")
 		}
 	}
-
 }
 
 func BenchmarkNewHope(b *testing.B) {
@@ -95,4 +94,77 @@ func BenchmarkNewHopeTor(b *testing.B) {
 	b.Run("GenerateKeyPairAlice", benchGenerateKeyPairAlice)
 	b.Run("KeyExchangeAlice", benchKeyExchangeAlice)
 	b.Run("KeyExchangeBob", benchKeyExchangeBob)
+}
+
+func benchGenerateKeyPairSimpleAlice(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		GenerateKeyPairSimpleAlice(rand.Reader)
+	}
+}
+
+func benchKeyExchangeSimpleAlice(b *testing.B) {
+	b.StopTimer()
+	for i := 0; i < b.N; i++ {
+		// Generate Alice's key's.
+		alicePriv, alicePub, err := GenerateKeyPairSimpleAlice(rand.Reader)
+		if err != nil {
+			b.Fatalf("GenerateKeyPairSimpleAlice failed: %v", err)
+		}
+
+		// Finish Bob's handshake.
+		bobPub, bobShared, err := KeyExchangeSimpleBob(rand.Reader, alicePub)
+		if err != nil {
+			b.Fatalf("KeyExchangeSimpleBob failed: %v", err)
+		}
+
+		// Finish Alice's handshake.
+		b.StartTimer()
+		aliceShared, err := KeyExchangeSimpleAlice(bobPub, alicePriv)
+		if err != nil {
+			b.Fatalf("KeyExchangeSimpleAlice failed: %v", err)
+		}
+		b.StopTimer()
+
+		// Sanity check.
+		if !bytes.Equal(aliceShared, bobShared) {
+			b.Fatalf("shared secrets mismatched")
+		}
+	}
+}
+
+func benchKeyExchangeSimpleBob(b *testing.B) {
+	b.StopTimer()
+	for i := 0; i < b.N; i++ {
+		// Generate Alice's key's.
+		alicePriv, alicePub, err := GenerateKeyPairSimpleAlice(rand.Reader)
+		if err != nil {
+			b.Fatalf("GenerateKeyPairSimpleAlice failed: %v", err)
+		}
+
+		// Finish Bob's handshake.
+		b.StartTimer()
+		bobPub, bobShared, err := KeyExchangeSimpleBob(rand.Reader, alicePub)
+		if err != nil {
+			b.Fatalf("KeyExchangeSimpleBob failed: %v", err)
+		}
+		b.StopTimer()
+
+		// Finish Alice's handshake.
+		aliceShared, err := KeyExchangeSimpleAlice(bobPub, alicePriv)
+		if err != nil {
+			b.Fatalf("KeyExchangeSimpleAlice failed: %v", err)
+		}
+
+		// Sanity check.
+		if !bytes.Equal(aliceShared, bobShared) {
+			b.Fatalf("shared secrets mismatched")
+		}
+	}
+}
+
+func BenchmarkNewHopeSimple(b *testing.B) {
+	TorSampling = false
+	b.Run("GenerateKeyPairSimpleAlice", benchGenerateKeyPairSimpleAlice)
+	b.Run("KeyExchangeSimpleAlice", benchKeyExchangeSimpleAlice)
+	b.Run("KeyExchangeSimpleBob", benchKeyExchangeSimpleBob)
 }
