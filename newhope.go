@@ -140,7 +140,7 @@ type PublicKeyBob struct {
 	Send [SendBSize]byte
 }
 
-// KeyExchangeBob is the Responder side of the Ring-LWE key exchange.  The
+// KeyExchangeBob is the Responder side of the NewHope key exchange.  The
 // shared secret and "public key" (key + reconciliation data) are generated
 // using the given reader, which must return random data.
 func KeyExchangeBob(rand io.Reader, alicePk *PublicKeyAlice) (*PublicKeyBob, []byte, error) {
@@ -193,7 +193,7 @@ func KeyExchangeBob(rand io.Reader, alicePk *PublicKeyAlice) (*PublicKeyBob, []b
 	return pubKey, mu[:], nil
 }
 
-// KeyExchangeAlice is the Initiaitor side of the Ring-LWE key exchange.  The
+// KeyExchangeAlice is the Initiaitor side of the NewHope key exchange.  The
 // provided private key is obliterated prior to returning.
 func KeyExchangeAlice(bobPk *PublicKeyBob, aliceSk *PrivateKeyAlice) ([]byte, error) {
 	var u, r, vp poly
