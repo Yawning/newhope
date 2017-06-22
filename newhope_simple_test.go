@@ -16,9 +16,9 @@ import (
 func testSimpleIntegration(t *testing.T) {
 	for i := 0; i < 1024; i++ {
 		// Generate Alice's key's.
-		alicePriv, alicePub, err := GenerateSimpleKeyPairAlice(rand.Reader)
+		alicePriv, alicePub, err := GenerateKeyPairSimpleAlice(rand.Reader)
 		if err != nil {
-			t.Fatalf("GenerateSimpleKeyPair failed: %v", err)
+			t.Fatalf("GenerateKeyPairSimpleAlice failed: %v", err)
 		}
 
 		// Finish Bob's handshake.

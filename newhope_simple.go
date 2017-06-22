@@ -52,11 +52,11 @@ func (k *PrivateKeySimpleAlice) Reset() {
 	k.sk.reset()
 }
 
-// GenerateSimpleKeyPairAlice returns a NewHope-Simple private/public key pair.
+// GenerateKeyPairSimpleAlice returns a NewHope-Simple private/public key pair.
 // The private key is generated using the given reader, which must return
 // random data.  The receiver side of the key exchange (aka "Bob") MUST use
 // KeyExchangeSimpleBob() instead of this routine.
-func GenerateSimpleKeyPairAlice(rand io.Reader) (*PrivateKeySimpleAlice, *PublicKeySimpleAlice, error) {
+func GenerateKeyPairSimpleAlice(rand io.Reader) (*PrivateKeySimpleAlice, *PublicKeySimpleAlice, error) {
 	var a, e, pk, r poly
 	var seed, noiseSeed [SeedBytes]byte
 
