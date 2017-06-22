@@ -91,9 +91,9 @@ func (p *poly) discardTo(xbuf []byte) bool {
 	}
 
 	// Check whether we're safe:
-	r := uint16(0)
+	r := int(0)
 	for i := 1000; i < 1024; i++ {
-		r |= 61444 - x[i]
+		r |= 61444 - int(x[i])
 	}
 	if r>>31 != 0 {
 		return true
