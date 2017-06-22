@@ -99,11 +99,11 @@ func (k *PrivateKeyAlice) Reset() {
 	k.sk.reset()
 }
 
-// GenerateKeyPair returns a private/public key pair.  The private key is
+// GenerateKeyPairAlice returns a private/public key pair.  The private key is
 // generated using the given reader, which must return random data.  The
 // receiver side of the key exchange (aka "Bob") MUST use KeyExchangeBob()
 // instead of this routine.
-func GenerateKeyPair(rand io.Reader) (*PrivateKeyAlice, *PublicKeyAlice, error) {
+func GenerateKeyPairAlice(rand io.Reader) (*PrivateKeyAlice, *PublicKeyAlice, error) {
 	var a, e, pk, r poly
 	var seed, noiseSeed [SeedBytes]byte
 

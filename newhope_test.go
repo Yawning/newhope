@@ -15,7 +15,7 @@ import (
 
 func benchmarkKeyGen(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		GenerateKeyPair(rand.Reader)
+		GenerateKeyPairAlice(rand.Reader)
 	}
 }
 
@@ -32,9 +32,9 @@ func BenchmarkKeyGenTor(b *testing.B) {
 func benchmarkAlice(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Generate Alice's key's.
-		alicePriv, alicePub, err := GenerateKeyPair(rand.Reader)
+		alicePriv, alicePub, err := GenerateKeyPairAlice(rand.Reader)
 		if err != nil {
-			b.Fatalf("GenerateKeyPair failed: %v", err)
+			b.Fatalf("GenerateKeyPairAlice failed: %v", err)
 		}
 
 		// Finish Bob's handshake.
@@ -74,9 +74,9 @@ func benchmarkBob(b *testing.B) {
 		b.StopTimer()
 
 		// Generate Alice's key's.
-		alicePriv, alicePub, err := GenerateKeyPair(rand.Reader)
+		alicePriv, alicePub, err := GenerateKeyPairAlice(rand.Reader)
 		if err != nil {
-			b.Fatalf("GenerateKeyPair failed: %v", err)
+			b.Fatalf("GenerateKeyPairAlice failed: %v", err)
 		}
 
 		// Finish Bob's handshake.
@@ -112,9 +112,9 @@ func BenchmarkBobTor(b *testing.B) {
 func testIntegration(t *testing.T) {
 	for i := 0; i < 1024; i++ {
 		// Generate Alice's key's.
-		alicePriv, alicePub, err := GenerateKeyPair(rand.Reader)
+		alicePriv, alicePub, err := GenerateKeyPairAlice(rand.Reader)
 		if err != nil {
-			t.Fatalf("GenerateKeyPair failed: %v", err)
+			t.Fatalf("GenerateKeyPairAlice failed: %v", err)
 		}
 
 		// Finish Bob's handshake.
