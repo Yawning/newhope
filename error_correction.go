@@ -1,4 +1,4 @@
-// error_correction.go - New Hope key exchange error correction.
+// error_correction.go - NewHope key exchange error correction.
 //
 // To the extent possible under law, Yawning Angel has waived all copyright
 // and related or neighboring rights to newhope, using the Creative

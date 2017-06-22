@@ -1,4 +1,4 @@
-// ntt.go - New Hope Number Theoretic Transform.
+// ntt.go - NewHope Number Theoretic Transform.
 //
 // To the extent possible under law, Yawning Angel has waived all copyright
 // and related or neighboring rights to newhope, using the Creative

@@ -1,4 +1,4 @@
-// newhope_test.go - New Hope Integration tests.
+// newhope_test.go - NewHope Integration tests.
 //
 // To the extent possible under law, Yawning Angel has waived all copyright
 // and related or neighboring rights to newhope, using the Creative

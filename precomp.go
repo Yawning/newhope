@@ -1,4 +1,4 @@
-// precomp.go - New Hope precomputed tables.
+// precomp.go - NewHope precomputed tables.
 //
 // To the extent possible under law, Yawning Angel has waived all copyright
 // and related or neighboring rights to newhope, using the Creative

@@ -1,4 +1,4 @@
-// poly.go - New Hope reductions.
+// poly.go - NewHope reductions.
 //
 // To the extent possible under law, Yawning Angel has waived all copyright
 // and related or neighboring rights to newhope, using the Creative

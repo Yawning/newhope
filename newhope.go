@@ -1,4 +1,4 @@
-// newhope.go - New Hope interface.
+// newhope.go - NewHope interface.
 //
 // To the extent possible under law, Yawning Angel has waived all copyright
 // and related or neighboring rights to newhope, using the Creative
@@ -9,7 +9,9 @@
 // Errors Problem.  It is a mechanical port of the Public Domain implementation
 // by Erdem Alkim, Léo Ducas, Thomas Pöppelmann, and Peter Schwabe.
 //
-// For more information see: https://cryptojedi.org/papers/newhope-20160803.pdf
+// For more information see:
+// https://cryptojedi.org/papers/newhope-20161119.pdf
+// https://cryptojedi.org/papers/newhopesimple-20161217.pdf
 //
 package newhope
 
@@ -81,12 +83,12 @@ func memwipe(b []byte) {
 	}
 }
 
-// PublicKeyAlice is Alice's New Hope public key.
+// PublicKeyAlice is Alice's NewHope public key.
 type PublicKeyAlice struct {
 	Send [SendASize]byte
 }
 
-// PrivateKeyAlice is Alice's New Hope private key.
+// PrivateKeyAlice is Alice's NewHope private key.
 type PrivateKeyAlice struct {
 	sk poly
 }
@@ -133,7 +135,7 @@ func GenerateKeyPair(rand io.Reader) (*PrivateKeyAlice, *PublicKeyAlice, error) 
 	return privKey, pubKey, nil
 }
 
-// PublicKeyBob is Bob's New Hope public key.
+// PublicKeyBob is Bob's NewHope public key.
 type PublicKeyBob struct {
 	Send [SendBSize]byte
 }
@@ -192,8 +194,7 @@ func KeyExchangeBob(rand io.Reader, alicePk *PublicKeyAlice) (*PublicKeyBob, []b
 }
 
 // KeyExchangeAlice is the Initiaitor side of the Ring-LWE key exchange.  The
-// provided private key is obliterated prior to returning, to promote
-// implementing Perfect Forward Secrecy.
+// provided private key is obliterated prior to returning.
 func KeyExchangeAlice(bobPk *PublicKeyBob, aliceSk *PrivateKeyAlice) ([]byte, error) {
 	var u, r, vp poly
 
