@@ -7,7 +7,7 @@
 
 package newhope
 
-import "git.schwanenlied.me/yawning/chacha20.git"
+import "gitlab.com/yawning/chacha20.git"
 
 func abs(v int32) int32 {
 	mask := v >> 31
@@ -73,7 +73,7 @@ func (c *poly) helpRec(v *poly, seed *[SeedBytes]byte, nonce byte) {
 
 	n[7] = nonce
 
-	stream, err := chacha20.NewCipher(seed[:], n[:])
+	stream, err := chacha20.New(seed[:], n[:])
 	if err != nil {
 		panic(err)
 	}

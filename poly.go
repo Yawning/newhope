@@ -10,7 +10,7 @@ package newhope
 import (
 	"encoding/binary"
 
-	"git.schwanenlied.me/yawning/chacha20.git"
+	"gitlab.com/yawning/chacha20.git"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -115,8 +115,8 @@ func (p *poly) uniform(seed *[SeedBytes]byte, torSampling bool) {
 
 		// h and buf are left unscrubbed because the output is public.
 		h := sha3.NewShake128()
-		h.Write(seed[:])
-		h.Read(buf[:])
+		_, _ = h.Write(seed[:])
+		_, _ = h.Read(buf[:])
 
 		for ctr, pos := 0, 0; ctr < paramN; {
 			val := binary.LittleEndian.Uint16(buf[pos:])
@@ -128,7 +128,7 @@ func (p *poly) uniform(seed *[SeedBytes]byte, torSampling bool) {
 			pos += 2
 			if pos > shake128Rate*nBlocks-2 {
 				nBlocks = 1
-				h.Read(buf[:shake128Rate])
+				_, _ = h.Read(buf[:shake128Rate])
 				pos = 0
 			}
 		}
@@ -140,10 +140,10 @@ func (p *poly) uniform(seed *[SeedBytes]byte, torSampling bool) {
 
 		// h and buf are left unscrubbed because the output is public.
 		h := sha3.NewShake128()
-		h.Write(seed[:])
+		_, _ = h.Write(seed[:])
 
 		for {
-			h.Read(buf[:])
+			_, _ = h.Read(buf[:])
 			if !p.discardTo(buf[:]) {
 				break
 			}
@@ -159,7 +159,7 @@ func (p *poly) getNoise(seed *[SeedBytes]byte, nonce byte) {
 	var n [8]byte
 
 	n[0] = nonce
-	stream, err := chacha20.NewCipher(seed[:], n[:])
+	stream, err := chacha20.New(seed[:], n[:])
 	if err != nil {
 		panic(err)
 	}

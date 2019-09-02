@@ -15,7 +15,7 @@ import (
 
 func benchGenerateKeyPairAlice(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		GenerateKeyPairAlice(rand.Reader)
+		_, _, _ = GenerateKeyPairAlice(rand.Reader)
 	}
 }
 
@@ -98,7 +98,7 @@ func BenchmarkNewHopeTor(b *testing.B) {
 
 func benchGenerateKeyPairSimpleAlice(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		GenerateKeyPairSimpleAlice(rand.Reader)
+		_, _, _ = GenerateKeyPairSimpleAlice(rand.Reader)
 	}
 }
 
